@@ -1,0 +1,708 @@
+<applivpe html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* Force plein écran */
+    html,body{width:100%;height:100%;margin:0;padding:0;overflow:auto}
+   /* Force la hauteur réelle */
+html,body{min-height:100vh}
+iframe,embed,object{height:100vh !important}
+  </style>
+</head>
+<body>
+<title>Gestion Compteurs Gaz – Visites</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>/* CENTRAGE + largeur liste */
+#listTable th,#listTable td{text-align:center;vertical-align:middle}
+#listTable input{text-align:center}
+.page{max-width:1400px}
+#listTable{width:100%;font-size:15px}
+#listTable th,#listTable td{padding:10px 12px}
+#listTable th:nth-child(3),#listTable td:nth-child(3){min-width:180px}
+/* couleurs & autres */
+:root{--clr:#2c3e50;--accent:#3498db;--danger:#e74c3c;--ok:#27ae60;
+       --clr-removed:#e74c3c;--clr-installed:#27ae60;--bg-removed:#ffecec;--bg-installed:#ecffec}
+:root{--clr:#2c3e50;--accent:#3498db;--danger:#e74c3c;--ok:#27ae60;
+       --clr-removed:#e74c3c;--clr-installed:#27ae60;--bg-removed:#ffecec;--bg-installed:#ecffec}
+/* ➜  SUPPRESSION BARRE DE DÉFILEMENT  */
+html,body{width:100%;height:100%;margin:0;padding:0;overflow:hidden}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Roboto,Helvetica,Arial;font-size:14px}
+body{background:#f7f7f7;color:var(--clr)}
+header{background:linear-gradient(135deg,var(--clr),#1a2a3a);color:#fff;padding:1.2rem 0;text-align:center}
+header h1{font-size:1.6rem;font-weight:300}
+nav{display:flex;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.08)}
+nav button{flex:1;padding:14px;border:none;background:#fff;cursor:pointer;font-weight:600;transition:background .2s}
+nav button.active{background:var(--accent);color:#fff}
+.page{display:none;padding:20px;max-width:1200px;margin:auto}
+.page.active{display:block}
+.section{background:#fff;border-radius:8px;padding:18px;margin-bottom:20px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+.section h3{margin-bottom:12px;font-size:1.1rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+label{font-weight:600;margin-bottom:4px;display:block}
+input,select,textarea{width:100%;padding:8px;border:1px solid #ccc;border-radius:4px}
+textarea{resize:vertical;min-height:60px}
+.photo-box{border:2px dashed #ccc;padding:12px;text-align:center;border-radius:6px;cursor:pointer;position:relative;background:#fafafa}
+.photo-box:hover{border-color:var(--accent)}
+.photo-box img{max-width:100%;max-height:120px;display:block;margin:6px auto}
+.photo-box input[type=file]{display:none}
+.btn{padding:10px 18px;border:none;border-radius:4px;font-weight:600;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-success{background:var(--ok);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-secondary{background:#95a5a6;color:#fff}
+.status{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:700;color:#fff}
+.status.prelim{background:#6c757d}
+.status.interv{background:#28a745}
+.alert{padding:14px;margin-bottom:18px;border-radius:6px;display:none}
+.alert.show{display:block}
+.alert.ok{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
+.alert.ko{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
+.prelim-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+.prelim-table th,.prelim-table td{padding:8px;border:1px solid #ddd;text-align:center}
+.prelim-table input{width:100%;border:none;padding:6px}
+.prelim-table th{background:#f8f9fa}
+.col-qte{width:120px}.col-ref{width:240px}.col-infos{width:600px}
+.removed-header{background:var(--bg-removed);color:var(--clr-removed)}
+.installed-header{background:var(--bg-installed);color:var(--clr-installed)}
+.schema-box{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:10px}
+.schema-field{background:#f8f9fa;border:1px solid #ddd;border-radius:4px;padding:8px;text-align:center}
+.schema-field label{font-size:12px;margin-bottom:4px;display:block}
+.schema-field input{width:100%;text-align:center}
+@media(max-width:700px){.grid{grid-template-columns:1fr}}</style>
+<header>
+  <h1>🌡️ Gestion Compteurs Gaz</h1>
+</header>
+<nav>
+  <button class="active" onclick="showPage('prelim')">📋 Visite Préalable</button>
+  <button onclick="showPage('interv')">🔧 VPE – Remplacement</button>
+  <button onclick="showPage('list')">📄 Liste / Export</button>
+</nav>
+<!-- 1) VISITE PRÉALABLE -->
+<div id="prelim" class="page active">
+  <form id="prelimForm" onsubmit="savePrelim(event)">
+    <div class="section">
+      <h3>Informations générales</h3>
+      <div class="grid">
+        <div>
+          <label>Date</label>
+          <input type="date" name="date" required="">
+        </div>
+        <div>
+          <label>Technicien</label>
+          <input type="text" name="tech" required="">
+        </div>
+        <div>
+          <label>N° Poste</label>
+          <input type="text" name="poste" required="">
+        </div>
+        <div>
+          <label>Nom Poste</label>
+          <input type="text" name="nom" required="">
+        </div>
+        <div class="col-full">
+          <label>Adresse</label>
+          <input type="text" name="adr" required="">
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Tableau éléments – visite préalable</h3>
+      <table class="prelim-table" id="prelimTable">
+        <thead>
+          <tr>
+            <th>Élément</th>
+            <th class="col-qte">Qté</th>
+            <th class="col-ref">Référence</th>
+            <th class="col-infos">Infos</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="section">
+      <h3>Schémas – cotes à relever</h3>
+      <h4>Dimensions – position des boulons (vue de face)</h4>
+      <img src="cote.jpg">
+      <div class="schema-box">
+        <div class="schema-field">
+          <label>Haut (cm)</label>
+          <input type="number" name="dim_haut" value="0" step="0.1">
+        </div>
+        <div class="schema-field">
+          <label>Bas (cm)</label>
+          <input type="number" name="dim_bas" value="0" step="0.1">
+        </div>
+        <div class="schema-field">
+          <label>Gauche (cm)</label>
+          <input type="number" name="dim_gauche" value="0" step="0.1">
+        </div>
+        <div class="schema-field">
+          <label>Droite (cm)</label>
+          <input type="number" name="dim_droite" value="0" step="0.1">
+        </div>
+        <div class="schema-field">
+          <label>Centre (cm)</label>
+          <input type="number" name="dim_centre" value="0" step="0.1">
+        </div>
+      </div>
+      <img src="hauteur.jpg">
+      <h4>Hauteur compteur</h4>
+      <div class="schema-box">
+        <div class="schema-field">
+          <label>Hauteur compteur (cm)</label>
+          <input type="number" name="hauteur" value="0" step="0.1">
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Photos (4 max)</h3>
+      <div class="grid">
+        <div class="photo-box" onclick="clickPhoto(this)">
+          <span>📷 Vue générale poste</span>
+          <img style="display:none">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this)">
+        </div>
+        <div class="photo-box" onclick="clickPhoto(this)">
+          <span>📷 Environnement PDL</span>
+          <img style="display:none">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this)">
+        </div>
+        <div class="photo-box" onclick="clickPhoto(this)">
+          <span>📷 Convertisseur</span>
+          <img style="display:none">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this)">
+        </div>
+        <div class="photo-box" onclick="clickPhoto(this)">
+          <span>📷 Télérelève actuel</span>
+          <img style="display:none">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this)">
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Commentaires libres</h3>
+      <textarea name="comments" rows="4" placeholder="Remarques, anomalies, mesures complémentaires..."></textarea>
+    </div>
+    <div class="section" style="text-align:center">
+      <button class="btn btn-primary btn-icon">💾 Enregistrer visite préalable</button>
+      <button type="button" class="btn btn-secondary" onclick="resetPage('prelim')">🔄 Réinit</button>
+    </div>
+  </form>
+</div>
+<!-- 2) VPE – REMPLACEMENT -->
+<div id="interv" class="page">
+  <form id="intervForm" onsubmit="saveInterv(event)">
+    <div class="section">
+      <h3>Informations intervention</h3>
+      <div class="grid">
+        <div>
+          <label>Date intervention</label>
+          <input type="date" name="date" required="">
+        </div>
+        <div>
+          <label>Heure arrivée</label>
+          <input type="time" name="arr">
+        </div>
+        <div>
+          <label>Heure départ</label>
+          <input type="time" name="dep">
+        </div>
+        <div>
+          <label>Technicien</label>
+          <input type="text" name="tech" required="">
+        </div>
+        <div>
+          <label>N° Poste</label>
+          <input type="text" name="poste" required="">
+        </div>
+        <div>
+          <label>Nom Poste</label>
+          <input type="text" name="nom" required="">
+        </div>
+        <div class="col-full">
+          <label>Adresse</label>
+          <input type="text" name="adr" required="">
+        </div>
+        <div>
+          <label>Commune</label>
+          <input type="text" name="ville" required="">
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h3 class="removed-header">🔴 Compteur de dépose (déposé)</h3>
+      <div class="grid">
+        <div>
+          <label>Matricule compteur</label>
+          <input type="text" name="old_mat">
+        </div>
+        <div>
+          <label>Marque</label>
+          <input type="text" name="old_marque">
+        </div>
+        <div>
+          <label>Type</label>
+          <input type="text" name="old_type">
+        </div>
+        <div>
+          <label>Année fabrication</label>
+          <input type="number" name="old_an" min="1980" max="2040">
+        </div>
+        <div>
+          <label>Index départ</label>
+          <input type="text" name="old_idx">
+        </div>
+        <div>
+          <label>Catégorie</label>
+          <select name="old_cat">
+            <option></option>
+            <option>Membranes</option>
+            <option>Piston</option>
+            <option>Turbine</option>
+          </select>
+        </div>
+        <div>
+          <label>Appellation</label>
+          <select name="old_app">
+            <option></option>
+            <option>G16</option>
+            <option>G25</option>
+            <option>G40</option>
+            <option>G65</option>
+          </select>
+        </div>
+      </div>
+      <h4 class="removed-header">Télérelève AVANT changement</h4>
+      <div class="grid">
+        <div>
+          <label>Ref ID</label>
+          <input type="text" name="tel_avant_ref">
+        </div>
+        <div>
+          <label>N° de série</label>
+          <input type="text" name="tel_avant_serial">
+        </div>
+        <div>
+          <label>Index 1 relevé</label>
+          <input type="text" name="tel_avant_idx1">
+        </div>
+        <div>
+          <label>Index 2 relevé</label>
+          <input type="text" name="tel_avant_idx2">
+        </div>
+      </div>
+      <h4 class="removed-header">Convertisseur AVANT changement</h4>
+      <div class="grid">
+        <div>
+          <label>Marque convertisseur</label>
+          <input type="text" name="conv_old_brand">
+        </div>
+        <div>
+          <label>Index mesuré</label>
+          <input type="text" name="conv_old_serial">
+        </div>
+        <div>
+          <label>Index base</label>
+          <input type="text" name="conv_old_idx">
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h3 class="installed-header">🟢 Compteur de pose (posé)</h3>
+      <div class="grid">
+        <div>
+          <label>Matricule compteur</label>
+          <input type="text" name="new_mat">
+        </div>
+        <div>
+          <label>Marque</label>
+          <input type="text" name="new_marque">
+        </div>
+        <div>
+          <label>Type</label>
+          <input type="text" name="new_type">
+        </div>
+        <div>
+          <label>Année fabrication</label>
+          <input type="number" name="new_an" min="1980" max="2040">
+        </div>
+        <div>
+          <label>Index arrivée</label>
+          <input type="text" name="new_idx">
+        </div>
+        <div>
+          <label>Catégorie</label>
+          <select name="new_cat">
+            <option></option>
+            <option>Membranes</option>
+            <option>Piston</option>
+            <option>Turbine</option>
+          </select>
+        </div>
+        <div>
+          <label>Appellation</label>
+          <select name="new_app">
+            <option></option>
+            <option>G16</option>
+            <option>G25</option>
+            <option>G40</option>
+            <option>G65</option>
+          </select>
+        </div>
+      </div>
+      <h4 class="installed-header">Télérelève APRÈS changement</h4>
+      <div class="grid">
+        <div>
+          <label>Ref ID</label>
+          <input type="text" name="tel_apres_ref">
+        </div>
+        <div>
+          <label>N° de série</label>
+          <input type="text" name="tel_apres_serial">
+        </div>
+        <div>
+          <label>Index 1 modifié</label>
+          <input type="text" name="tel_apres_idx1mod">
+        </div>
+        <div>
+          <label>Index 2 modifié</label>
+          <input type="text" name="tel_apres_idx2mod">
+        </div>
+      </div>
+      <h4 class="installed-header">Convertisseur APRÈS changement</h4>
+      <div class="grid">
+        <div>
+          <label>Marque convertisseur</label>
+          <input type="text" name="conv_new_brand">
+        </div>
+        <div>
+          <label>Index mesuré</label>
+          <input type="text" name="conv_new_serial">
+        </div>
+        <div>
+          <label>Index base</label>
+          <input type="text" name="conv_new_idx">
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <h3>Photos (8 max)</h3>
+      <div class="grid">
+        <div class="photo-box" onclick="clickPhoto(this)">
+          <span>📷 Vue générale poste</span>
+          <img style="display:none">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this)">
+        </div>
+        <div class="photo-box" onclick="clickPhoto(this)">
+          <span>📷 Compteur déposé</span>
+          <img style="display:none">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this)">
+        </div>
+        <div class="photo-box" onclick="clickPhoto(this)">
+          <span>📷 Compteur posé</span>
+          <img style="display:none">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this)">
+        </div>
+        <div class="photo-box" onclick="clickPhoto(this)">
+          <span>📷 Étiquette DLV compteur posé</span>
+          <img style="display:none">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this)">
+        </div>
+        <div class="photo-box" onclick="clickPhoto(this)">
+          <span>📷 Environnement PDL</span>
+          <img style="display:none">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this)">
+        </div>
+        <div class="photo-box" onclick="clickPhoto(this)">
+          <span>📷 Convertisseur</span>
+          <img style="display:none">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this)">
+        </div>
+        <div class="photo-box" onclick="clickPhoto(this)">
+          <span>📷 Télérelève AVANT</span>
+          <img style="display:none">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this)">
+        </div>
+        <div class="photo-box" onclick="clickPhoto(this)">
+          <span>📷 Télérelève APRÈS</span>
+          <img style="display:none">
+          <input type="file" accept="image/*" capture="environment" onchange="previewPhoto(this)">
+        </div>
+      </div>
+    </div>
+    <div class="section" style="text-align:center">
+      <button class="btn btn-success btn-icon">💾 Enregistrer intervention</button>
+      <button type="button" class="btn btn-secondary" onclick="resetPage('interv')">🔄 Réinit</button>
+    </div>
+  </form>
+</div>
+<!-- 3) LISTE / EXPORT -->
+<div id="list" class="page">
+  <div class="section">
+    <h3>Liste des visites &amp; interventions</h3>
+    <div style="display:flex;gap:10px;margin-bottom:15px">
+      <button class="btn btn-primary" onclick="exportCSVFrench()">📊 Exporter CSV</button>
+      <button class="btn btn-secondary" onclick="importFileCSV()">📥 Importer CSV</button>
+      <input id="importFile" type="file" accept=".csv" style="display:none" onchange="readImportCSV(this)">
+    </div>
+<!-- Bouton Google Drive -->
+<div style="margin-top:10px">
+  <button class="btn btn-success btn-icon" onclick="sendToGoogleDrive()">📤 Envoyer vers Google Drive</button>
+</div>
+    <div id="tableWrap" style="overflow:auto;max-height:60vh">
+      <table id="listTable">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<!-- ALERT -->
+<div id="alert" class="alert"></div>
+<script>/************  UTILS  ************/
+const DB_KEY='gasMeterDB';
+let db=JSON.parse(localStorage.getItem(DB_KEY)||'{"prelim":[],"interv":[]}');
+function showAlert(msg,ok=true){
+  const a=document.getElementById('alert');
+  a.textContent=msg;a.className='alert '+(ok?'ok':'ko')+' show';
+  setTimeout(()=>a.classList.remove('show'),3000);
+}
+function showPage(p){
+  document.querySelectorAll('.page,nav button').forEach(x=>x.classList.remove('active'));
+  document.getElementById(p).classList.add('active'); event.target.classList.add('active');
+  if(p==='list') renderTable();
+}
+/************  PHOTOS  ************/
+function clickPhoto(box){ box.querySelector('input[type=file]').click(); }
+function previewPhoto(inp){
+  const box=inp.closest('.photo-box'),img=box.querySelector('img');
+  if(inp.files && inp.files[0]){
+    const r=new FileReader();
+    r.onload=function(e){img.src=e.target.result;img.style.display='block';};
+    r.readAsDataURL(inp.files[0]);
+  }
+}
+/************  PRELIM : TABLEAU 4 COLONNES  ************/
+const elements = [
+  "Photo","Sortie influence","Plaque VS","Plaque poste","Cello",
+  "Joint compteur","Joint torique","Joint plat","Joint tamis","Filtre",
+  "Staubli","Mamelon","TE laiton","Compteur","Anti-rouille","Peinture",
+  "Entrée diam","Sortie diam","Boulons"
+];
+function buildPrelimTable(){
+  const tb=document.querySelector('#prelimTable tbody');
+  tb.innerHTML='';
+  elements.forEach(el=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td>${el}</td>
+      <td class="col-qte"><input type="number" min="0" placeholder="Qté"></td>
+      <td class="col-ref"><input type="text" placeholder="Référence"></td>
+      <td class="col-infos"><input type="text" placeholder="Infos"></td>
+    `;
+    tb.appendChild(tr);
+  });
+}
+/************  PRELIM  ************/
+function savePrelim(e){
+  e.preventDefault();
+  const f=e.target, p=new FormData(f), o={type:'prelim',id:Date.now()};
+  o.date=p.get('date'); o.tech=p.get('tech'); o.poste=p.get('poste');
+  o.nom=p.get('nom'); o.adr=p.get('adr');
+  o.rows=[...f.querySelectorAll('#prelimTable tbody tr')].map(tr=>{
+    const [el,qty,ref,infos]=tr.querySelectorAll('td');
+    return {element:el.textContent, qte:qty.querySelector('input').value, ref:ref.querySelector('input').value, infos:infos.querySelector('input').value};
+  });
+  o.schemas={
+    dim_haut:p.get('dim_haut'), dim_bas:p.get('dim_bas'), dim_gauche:p.get('dim_gauche'),
+    dim_droite:p.get('dim_droite'), dim_centre:p.get('dim_centre'), hauteur:p.get('hauteur')
+  };
+  o.pics=[...f.querySelectorAll('#prelim .photo-box img')].map(im=>im.src||'').filter(Boolean);
+  o.comments=p.get('comments');
+  db.prelim.unshift(o); save(); f.reset();
+  showAlert('Visite préalable enregistrée');
+}
+/************  INTERV  ************/
+function saveInterv(e){
+  e.preventDefault();
+  const f=e.target, p=new FormData(f), o={type:'interv',id:Date.now()};
+  const fields=[
+    'date','arr','dep','tech','poste','nom','adr','ville',
+    'old_mat','old_marque','old_type','old_an','old_idx','old_cat','old_app',
+    'new_mat','new_marque','new_type','new_an','new_idx','new_cat','new_app',
+    'conv_old_brand','conv_old_serial','conv_old_idx',
+    'conv_new_brand','conv_new_serial','conv_new_idx',
+    'tel_avant_ref','tel_avant_serial','tel_avant_idx1','tel_avant_idx2',
+    'tel_apres_ref','tel_apres_serial','tel_apres_idx1','tel_apres_idx2'
+  ];
+  fields.forEach(k=>o[k]=p.get(k));
+  o.pics=[...f.querySelectorAll('#interv .photo-box img')].map(im=>im.src||'').filter(Boolean);
+  db.interv.unshift(o); save(); f.reset();
+  document.querySelectorAll('#interv img').forEach(i=>i.style.display='none');
+  showAlert('Intervention enregistrée');
+}
+/************  RESET  ************/
+function resetPage(pg){ document.getElementById(pg+'Form').reset(); document.querySelectorAll('#'+pg+' img').forEach(i=>i.style.display='none'); }
+/************  STORAGE  ************/
+function save(){localStorage.setItem(DB_KEY,JSON.stringify(db));}
+/************  LIST / EXPORT  ************/
+function renderTable(){
+  const h=['Date','Type','Poste','Nom','Ancien','Nouveau','Photos','Action'];
+  document.querySelector('#listTable thead').innerHTML='<tr>'+h.map(x=>`<th>${x}</th>`).join('')+'</tr>';
+  const rows=[...db.prelim,...db.interv].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.querySelector('#listTable tbody').innerHTML=rows.map(r=>{
+    const tp=r.type==='prelim'?'<span class="status prelim">Préalable</span>':'<span class="status interv">Interv</span>';
+    return `<tr>
+      <td>${r.date}</td><td>${tp}</td><td>${r.poste}</td><td>${r.nom||''}</td>
+      <td>${r.old_mat||''}</td><td>${r.new_mat||''}</td>
+      <td>${r.pics.length}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="delRow('${r.type}',${r.id})">🗑</button></td>
+    </tr>`;
+  }).join('');
+}
+function delRow(tp,id){ db[tp]=db[tp].filter(x=>x.id!==id); save(); renderTable(); showAlert('Supprimé'); }
+/* ----------  EXPORT CSV AVEC INTITULÉS FRANÇAIS  ---------- */
+const FRENCH_HEADERS = {
+  prelim: {
+    "Date d'intervention": "date",
+    "Type de visite": "type",
+    "N° Poste": "poste",
+    "Nom du Poste": "nom",
+    "Adresse": "adr",
+    "Commune": "ville",
+    "Éléments / Qte / Réf / Infos": "rows",
+    "Schémas cotes": "schemas",
+    "Photos": "pics",
+    "Commentaires": "comments"
+  },
+  interv: {
+    "Date d'intervention": "date",
+    "Heure arrivée": "arr",
+    "Heure départ": "dep",
+    "Technicien": "tech",
+    "N° Poste": "poste",
+    "Nom du Poste": "nom",
+    "Adresse": "adr",
+    "Commune": "ville",
+    "Matricule compteur déposé": "old_mat",
+    "Marque déposé": "old_marque",
+    "Type déposé": "old_type",
+    "Année fabrication déposé": "old_an",
+    "Index départ": "old_idx",
+    "Catégorie déposé": "old_cat",
+    "Appellation déposé": "old_app",
+    "Matricule compteur posé": "new_mat",
+    "Marque posé": "new_marque",
+    "Type posé": "new_type",
+    "Année fabrication posé": "new_an",
+    "Index arrivée": "new_idx",
+    "Catégorie posé": "new_cat",
+    "Appellation posé": "new_app",
+    "Convertisseur AVANT – Marque": "conv_old_brand",
+    "Convertisseur AVANT – N° série": "conv_old_serial",
+    "Convertisseur AVANT – Index": "conv_old_idx",
+    "Convertisseur APRÈS – Marque": "conv_new_brand",
+    "Convertisseur APRÈS – N° série": "conv_new_serial",
+    "Convertisseur APRÈS – Index": "conv_new_idx",
+    "Télérelève AVANT – Ref ID": "tel_avant_ref",
+    "Télérelève AVANT – N° série": "tel_avant_serial",
+    "Télérelève AVANT – Index 1": "tel_avant_idx1",
+    "Télérelève AVANT – Index 2": "tel_avant_idx2",
+    "Télérelève APRÈS – Ref ID": "tel_apres_ref",
+    "Télérelève APRÈS – N° série": "tel_apres_serial",
+    "Télérelève APRÈS – Index 1": "tel_apres_idx1",
+    "Télérelève APRÈS – Index 2": "tel_apres_idx2",
+    "Photos": "pics",
+    "Commentaires": "comments"
+  }
+};
+function exportCSVFrench(){
+  const all=[...db.prelim,...db.interv].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!all.length){showAlert('Rien à exporter',false);return;}
+  const csvRows=[];
+  all.forEach(rec=>{
+    const headers=FRENCH_HEADERS[rec.type];
+    const line=[];
+    Object.keys(headers).forEach(lib=>{
+      const key=headers[lib];
+      let val=rec[key]||'';
+      if(typeof val==='object') val=JSON.stringify(val);
+      line.push(/;|\n/.test(val)?'"'+val.replace(/"/g,'""')+'"':val);
+    });
+    csvRows.push(line.join(';'));
+  });
+  const csv=[Object.keys(FRENCH_HEADERS[all[0].type]).join(';'),...csvRows].join('\r\n');
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`compteurs_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showAlert('CSV exporté (libellés français)');
+}
+function importFileCSV(){document.getElementById('importFile').click()}
+function readImportCSV(inp){
+  if(!inp.files||!inp.files[0])return;
+  const r=new FileReader();
+  r.onload=function(e){
+    try{
+      const lines=e.target.result.split(/\r?\n/), h=lines[0].split(';').map(x=>x.replace(/^"|"$/g,''));
+      const imp=[];
+      for(let i=1;i<lines.length;i++){
+        if(!lines[i].trim())continue;
+        const vals=lines[i].split(';').map(x=>x.replace(/^"|"$/g,''));
+        const o={}; h.forEach((k,j)=>o[k]=vals[j]||''); imp.push(o);
+      }
+      if(!imp.length){showAlert('CSV vide',false);return;}
+      if(confirm(`Ajouter ${imp.length} lignes ?`)){
+        imp.forEach(r=>{
+          r.id=Number(r.id)||Date.now()+Math.random();
+          r.pics=r.pics?r.pics.split(','):[];
+          if(r.rows) r.rows=JSON.parse(r.rows);
+          if(r.schemas) r.schemas=JSON.parse(r.schemas);
+          if(r.type==='prelim')db.prelim.unshift(r);else db.interv.unshift(r);
+        });
+        save(); renderTable(); showAlert('Import OK');
+      }
+    }catch(err){showAlert('Erreur import : '+err,false);}
+  };
+  r.readAsText(inp.files[0],'UTF-8');
+}
+/* ----------  ENVOI VERS GOOGLE DRIVE  ---------- */
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKf.../exec'; // ← votre URL ici
+
+async function sendToGoogleDrive(){
+  const all=[...db.prelim,...db.interv];
+  if(!all.length){showAlert('Aucune donnée à envoyer');return;}
+
+  showAlert('Envoi en cours…',true);
+
+  for(const rec of all){
+    if(rec._sent) continue; // évite les doublons
+    try{
+      await fetch(SCRIPT_URL,{
+        method: 'POST',
+        body: JSON.stringify(rec),
+        headers:{'Content-Type':'application/json'}
+      });
+      rec._sent=true;
+    }catch(err){
+      showAlert('Erreur réseau : '+err,false);
+      return;
+    }
+  }
+  save(); // met à jour localStorage avec _sent
+  showAlert('Toutes les données ont été envoyées sur Google Drive !');
+}
+/************  INIT  ************/
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelector('input[name=date]').valueAsDate=new Date();
+  buildPrelimTable();
+  renderTable();
+});</script>
+</body>
+</html>
