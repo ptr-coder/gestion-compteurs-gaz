@@ -673,8 +673,7 @@ function readImportCSV(inp){
   r.readAsText(inp.files[0],'UTF-8');
 }
 /* ----------  ENVOI VERS GOOGLE DRIVE  ---------- */
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKf.../exec'; // ← votre URL ici
-
+const SCRIPT_URL = 'https://script.google.com/home/projects/19vztwoaMO5L90U2kqSJr7rnHdZwUFz_sh2c_9HpIP-1Q5G1QdH9pCoxQ/exec';
 async function sendToGoogleDrive(){
   const all=[...db.prelim,...db.interv];
   if(!all.length){showAlert('Aucune donnée à envoyer');return;}
